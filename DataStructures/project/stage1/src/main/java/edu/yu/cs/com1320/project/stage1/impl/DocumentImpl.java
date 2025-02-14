@@ -3,14 +3,28 @@ package edu.yu.cs.com1320.project.stage1.impl;
 import edu.yu.cs.com1320.project.stage1.Document;
 
 import java.net.URI;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
 public class DocumentImpl implements Document {
-    private final Map<String, String> metadata = new HashMap<>();
-    public DocumentImpl (Map<String, String> metadata) {
-        this.metadata = metadata;
+    //class variables
+    private final Map<String, String> metadata;
+    private String text;
+    private byte[] binaryData;
+    private final URI uri;
+    //constructors
+    public DocumentImpl (URI uri, String txt) {
+        this.metadata = new HashMap<>();
+        this.uri = uri;
+        this.text = txt;
     }
+    public DocumentImpl (URI uri, byte[] binaryData) {
+        this.metadata = new HashMap<>();
+        this.uri = uri;
+        this.binaryData = binaryData;
+    }
+    //getters and setters
     @Override
     public String setMetadataValue(String key, String value) {
         if (key == null || key.isEmpty()) {
@@ -31,28 +45,31 @@ public class DocumentImpl implements Document {
         }
         return null;
     }
-
     @Override
     public HashMap<String, String> getMetadata() {
-        Map<String, String> map = new HashMap<>();
-        map.putAll(this.metadata);
-        return map;
+        return new HashMap<>(this.metadata);
     }
-
     @Override
     public String getDocumentTxt() {
-        return "";
+        try{
+            return this.text;
+        } catch (NullPointerException e){
+            return null;
+        }
     }
-
     @Override
     public byte[] getDocumentBinaryData() {
-        return new byte[0];
+        try{
+            return this.binaryData;
+        } catch (NullPointerException e) {
+            return null;
+        }
     }
-
     @Override
     public URI getKey() {
-        return null;
+        return this.uri;
     }
+    //comparators
     @Override
     public int hashCode() {
         int result = uri.hashCode();
@@ -61,10 +78,13 @@ public class DocumentImpl implements Document {
         return Math.abs(result);
     }
     @Override
-    public boolean equals(URI other) {
-        if (this.hashCode() == other.hashCode()) {
+    public boolean equals(Object other) {
+        if (this == other) {
             return true;
         }
-        return false;
+        if (other == null || getClass() != other.getClass()) {
+            return false;
+        }
+        return this.hashCode() == other.hashCode();
     }
 }
