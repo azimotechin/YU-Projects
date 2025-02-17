@@ -27,10 +27,7 @@ public class DocumentImpl implements Document {
     //getters and setters
     @Override
     public String setMetadataValue(String key, String value) {
-        if (key == null || key.isEmpty()) {
-            throw new IllegalArgumentException("key is null or blank");
-        }
-        String oldValue = this.metadata.get(key);
+        String oldValue = this.getMetadataValue(key);
         this.metadata.put(key,value);
         return oldValue;
     }
