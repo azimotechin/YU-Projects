@@ -1,6 +1,5 @@
 package edu.yu.cs.com1320.project.stage1;
 
-import edu.yu.cs.com1320.project.stage1.impl.DocumentImpl;
 import edu.yu.cs.com1320.project.stage1.impl.DocumentStoreImpl;
 import org.junit.jupiter.api.Test;
 
