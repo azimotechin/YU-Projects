@@ -4,13 +4,6 @@ import edu.yu.cs.com1320.project.HashTable;
 import edu.yu.cs.com1320.project.impl.*;
 import org.junit.jupiter.api.Test;
 
-/* import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.nio.charset.StandardCharsets; */
-
 import java.util.Collection;
 import java.util.Set;
 
