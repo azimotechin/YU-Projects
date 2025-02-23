@@ -6,21 +6,25 @@ import java.util.List;
 import java.util.Set;
 
 public class HashTableImpl<Key, Value> implements HashTable<Key, Value> {
+    // entry class
     private static class Entry<Key, Value> {
         Key key;
         Value value;
+        // entry constructor
         Entry<Key, Value> next = null;
         public Entry(Key key, Value value) {
             this.key = key;
             this.value = value;
         }
     }
+    // variable
     private final Entry<Key, Value>[] table;
+    // constructor
     @SuppressWarnings("unchecked")
     public HashTableImpl() {
         this.table = new Entry[5];
     }
-
+    // getter
     @Override
     public Value get(Key key) {
         Entry<Key, Value> current = this.table[hash(key)];
@@ -32,7 +36,7 @@ public class HashTableImpl<Key, Value> implements HashTable<Key, Value> {
         }
         return null;
     }
-
+    // setter and deleter
     @Override
     public Value put(Key k, Value v) {
         if (k == null) {
@@ -69,7 +73,7 @@ public class HashTableImpl<Key, Value> implements HashTable<Key, Value> {
         this.table[hash(k)] = newEntry;
         return null;
     }
-
+    // contains
     @Override
     public boolean containsKey(Key key) {
         if (key == null) {
@@ -84,7 +88,7 @@ public class HashTableImpl<Key, Value> implements HashTable<Key, Value> {
         }
         return false;
     }
-
+    // set of keys
     @Override
     public Set<Key> keySet() {
         Set<Key> keys = new java.util.HashSet<>();
@@ -96,7 +100,7 @@ public class HashTableImpl<Key, Value> implements HashTable<Key, Value> {
         }
         return java.util.Collections.unmodifiableSet(keys);
     }
-
+    // collection of values
     @Override
     public Collection<Value> values() {
         List<Value> values = new java.util.ArrayList<>();
@@ -108,7 +112,7 @@ public class HashTableImpl<Key, Value> implements HashTable<Key, Value> {
         }
         return java.util.Collections.unmodifiableCollection(values);
     }
-
+    // number of docs in table
     @Override
     public int size() {
         int count = 0;
@@ -120,6 +124,7 @@ public class HashTableImpl<Key, Value> implements HashTable<Key, Value> {
         }
         return count;
     }
+    // hash
     private int hash(Key key) {
         return (key.hashCode() < 0 ? -key.hashCode() : key.hashCode()) % 5;
     }
