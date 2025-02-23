@@ -112,7 +112,7 @@ public class HashTableImpl<Key, Value> implements HashTable<Key, Value> {
         }
         return java.util.Collections.unmodifiableCollection(values);
     }
-    // number of docs in table
+    // number of entries in table
     @Override
     public int size() {
         int count = 0;
