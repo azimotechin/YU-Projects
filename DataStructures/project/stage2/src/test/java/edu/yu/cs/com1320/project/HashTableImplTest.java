@@ -1,6 +1,5 @@
-package edu.yu.cs.com1320.project.stage2;
+package edu.yu.cs.com1320.project;
 
-import edu.yu.cs.com1320.project.HashTable;
 import edu.yu.cs.com1320.project.impl.*;
 import org.junit.jupiter.api.Test;
 

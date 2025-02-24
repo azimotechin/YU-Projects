@@ -1,6 +1,6 @@
 package edu.yu.cs.com1320.project.stage2;
 import edu.yu.cs.com1320.project.HashTable;
-import edu.yu.cs.com1320.project.impl.DocumentImpl;
+import edu.yu.cs.com1320.project.stage2.impl.DocumentImpl;
 import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.Test;
 import java.net.URI;

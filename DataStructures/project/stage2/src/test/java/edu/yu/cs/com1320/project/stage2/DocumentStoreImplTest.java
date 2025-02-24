@@ -1,6 +1,6 @@
 package edu.yu.cs.com1320.project.stage2;
 
-import edu.yu.cs.com1320.project.impl.DocumentStoreImpl;
+import edu.yu.cs.com1320.project.stage2.impl.DocumentStoreImpl;
 import org.junit.jupiter.api.Test;
 
 import java.io.ByteArrayInputStream;
