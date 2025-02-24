@@ -12,18 +12,22 @@ public class HashTableImpl<Key, Value> implements HashTable<Key, Value> {
         Value value;
         // entry constructor
         Entry<Key, Value> next = null;
+
         public Entry(Key key, Value value) {
             this.key = key;
             this.value = value;
         }
     }
+
     // variable
     private final Entry<Key, Value>[] table;
+
     // constructor
     @SuppressWarnings("unchecked")
     public HashTableImpl() {
         this.table = new Entry[5];
     }
+
     // getter
     @Override
     public Value get(Key key) {
@@ -36,28 +40,16 @@ public class HashTableImpl<Key, Value> implements HashTable<Key, Value> {
         }
         return null;
     }
-    // setter and deleter
+
+    // setter (and deleter)
     @Override
     public Value put(Key k, Value v) {
         if (k == null) {
             throw new NullPointerException("key is null");
         }
         Entry<Key, Value> current = this.table[hash(k)];
-        Entry<Key, Value> previous = null;
         if (v == null) {
-            while (current != null) {
-                if (current.key.equals(k)) {
-                    if (previous == null) {
-                        this.table[hash(k)] = current.next;
-                    } else {
-                        previous.next = current.next;
-                    }
-                    return current.value;
-                }
-                previous = current;
-                current = current.next;
-            }
-            return null;
+            return delete(k, current);
         }
         current = this.table[hash(k)];
         while (current != null) {
@@ -71,6 +63,23 @@ public class HashTableImpl<Key, Value> implements HashTable<Key, Value> {
         Entry<Key, Value> newEntry = new Entry<>(k, v);
         newEntry.next = this.table[hash(k)];
         this.table[hash(k)] = newEntry;
+        return null;
+    }
+    //deleter
+    private Value delete(Key k, Entry<Key, Value> current) {
+        Entry<Key, Value> prev = null;
+        while (current != null) {
+            if (current.key.equals(k)) {
+                if (prev == null) {
+                    this.table[hash(k)] = current.next;
+                } else {
+                    prev.next = current.next;
+                }
+                return current.value;
+            }
+            prev = current;
+            current = current.next;
+        }
         return null;
     }
     // contains
