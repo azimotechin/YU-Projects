@@ -1,0 +1,109 @@
+package edu.yu.cs.com1320.project.stage3.impl;
+
+import edu.yu.cs.com1320.project.*;
+import edu.yu.cs.com1320.project.impl.*;
+import edu.yu.cs.com1320.project.stage3.*;
+import edu.yu.cs.com1320.project.undo.Command;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URI;
+import java.nio.charset.StandardCharsets;
+import java.util.function.Consumer;
+
+public class DocumentStoreImpl implements DocumentStore {
+    // variables
+    private final HashTable<URI, Document> documents;
+    private final Stack<Command> commandStack;
+
+    // constructor
+    public DocumentStoreImpl () {
+        this.documents = new HashTableImpl<>();
+        this.commandStack = new StackImpl<>();
+    }
+
+    // set metadata
+    @Override
+    public String setMetadata(URI uri, String key, String value) {
+        Consumer<URI> consumer = url -> this.get(url).setMetadataValue(key, this.getMetadata(url, key));
+        Command command = new Command(uri, consumer);
+        this.commandStack.push(command);
+        return get(uri).setMetadataValue(key, value);
+    }
+
+    // get metadata
+    @Override
+    public String getMetadata(URI uri, String key) {
+        if (uri == null || uri.toString().isEmpty() || get(uri) == null) {
+            throw new IllegalArgumentException("uri is null, blank, or has no document stored by it");
+        }
+        return get(uri).getMetadataValue(key);
+    }
+
+    // doc setter (and deleter)
+    @Override
+    public int put(InputStream input, URI uri, DocumentFormat format) throws IOException {
+        if (uri == null || uri.toString().isEmpty() || format == null) {
+            throw new IllegalArgumentException("uri is null or empty or format is null");
+        }
+        int prev_doc_hash_code = get(uri) != null ? get(uri).hashCode() : 0;
+        if (input == null) {
+            delete(uri);
+            return prev_doc_hash_code;
+        }
+        Consumer<URI> consumer = url -> this.documents.put(url, this.documents.get(url));
+        Command command = new Command(uri, consumer);
+        this.commandStack.push(command);
+        Document document = null;
+        if (format == DocumentFormat.TXT) {
+            String text = new String(input.readAllBytes(), StandardCharsets.UTF_8);
+            document = new DocumentImpl(uri, text);
+        }
+        if (format == DocumentFormat.BINARY) {
+            byte[] binaryData = input.readAllBytes();
+            document = new DocumentImpl(uri, binaryData);
+        }
+        if (document != null) {
+            this.documents.put(uri, document);
+        }
+        return prev_doc_hash_code;
+    }
+
+    // get doc
+    @Override
+    public Document get(URI url) {
+        return this.documents.get(url);
+    }
+
+    // deleter
+    @Override
+    public boolean delete(URI url) {
+       if (get(url) == null) {
+           return false;
+       }
+       Consumer<URI> consumer = uri -> this.documents.put(uri, this.documents.get(uri));
+       Command command = new Command(url, consumer);
+       this.commandStack.push(command);
+       this.documents.put(url, null);
+       return true;
+    }
+
+    // undo last action
+    @Override
+    public void undo() throws IllegalStateException {
+        this.commandStack.peek().undo();
+    }
+
+    // undo last action on specific doc
+    @Override
+    public void undo(URI url) throws IllegalStateException {
+        Stack<Command> temp = new StackImpl<>();
+        while (this.commandStack.peek().getUri() != url) {
+            temp.push(commandStack.pop());
+        }
+        this.commandStack.peek().undo();
+        while (temp.peek() != null) {
+            this.commandStack.push(temp.pop());
+        }
+    }
+}
