@@ -25,7 +25,9 @@ public class DocumentStoreImpl implements DocumentStore {
     // set metadata
     @Override
     public String setMetadata(URI uri, String key, String value) {
-        Consumer<URI> consumer = url -> this.get(url).setMetadataValue(key, this.getMetadata(url, key));
+        this.getMetadata(uri, key);
+        String str = this.getMetadata(uri, key);
+        Consumer<URI> consumer = url -> this.get(url).setMetadataValue(key, str);
         Command command = new Command(uri, consumer);
         this.commandStack.push(command);
         return get(uri).setMetadataValue(key, value);
@@ -51,7 +53,8 @@ public class DocumentStoreImpl implements DocumentStore {
             delete(uri);
             return prev_doc_hash_code;
         }
-        Consumer<URI> consumer = url -> this.documents.put(url, this.documents.get(url));
+        Document doc = get(uri);
+        Consumer<URI> consumer = url -> this.documents.put(url, doc);
         Command command = new Command(uri, consumer);
         this.commandStack.push(command);
         Document document = null;
@@ -81,7 +84,8 @@ public class DocumentStoreImpl implements DocumentStore {
        if (get(url) == null) {
            return false;
        }
-       Consumer<URI> consumer = uri -> this.documents.put(uri, this.documents.get(uri));
+       Document doc = get(url);
+       Consumer<URI> consumer = uri -> this.documents.put(uri, doc);
        Command command = new Command(url, consumer);
        this.commandStack.push(command);
        this.documents.put(url, null);
@@ -91,7 +95,7 @@ public class DocumentStoreImpl implements DocumentStore {
     // undo last action
     @Override
     public void undo() throws IllegalStateException {
-        this.commandStack.peek().undo();
+        this.commandStack.pop().undo();
     }
 
     // undo last action on specific doc
@@ -101,7 +105,7 @@ public class DocumentStoreImpl implements DocumentStore {
         while (this.commandStack.peek().getUri() != url) {
             temp.push(commandStack.pop());
         }
-        this.commandStack.peek().undo();
+        this.commandStack.pop().undo();
         while (temp.peek() != null) {
             this.commandStack.push(temp.pop());
         }

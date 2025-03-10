@@ -9,7 +9,7 @@ import java.util.Arrays;
 
 public class DocumentImpl implements Document {
     // class variables
-    private final HashTableImpl<String, String> metadata;
+    private final HashTable<String, String> metadata;
     private String text;
     private byte[] binaryData;
     private final URI uri;
@@ -45,7 +45,7 @@ public class DocumentImpl implements Document {
     }
     @Override
     public HashTable<String, String> getMetadata() {
-        HashTableImpl<String, String> copy = new HashTableImpl<>();
+        HashTable<String, String> copy = new HashTableImpl<>();
         for (String key : this.metadata.keySet()) {
             copy.put(key, this.metadata.get(key));
         }

@@ -28,7 +28,7 @@ public class StackImpl<T> implements Stack<T> {
     public void push(T element) {
         Node<T> temp = new Node<>(element);
         temp.next = top;
-        top = temp;
+        this.top = temp;
         count++;
     }
 
@@ -46,6 +46,8 @@ public class StackImpl<T> implements Stack<T> {
     // peek
     @Override
     public T peek() {
+        if (this.size() == 0)
+                return null;
         return this.top.element;
     }
 
