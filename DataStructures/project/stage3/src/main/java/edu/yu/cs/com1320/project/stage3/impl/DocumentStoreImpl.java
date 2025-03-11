@@ -95,17 +95,25 @@ public class DocumentStoreImpl implements DocumentStore {
     // undo last action
     @Override
     public void undo() throws IllegalStateException {
-        this.commandStack.pop().undo();
+        try {
+            this.commandStack.pop().undo();
+        } catch (NullPointerException e) {
+            throw new IllegalStateException("command stack is empty");
+        }
     }
 
     // undo last action on specific doc
     @Override
     public void undo(URI url) throws IllegalStateException {
         Stack<Command> temp = new StackImpl<>();
-        while (this.commandStack.peek().getUri() != url) {
+        while (this.commandStack.peek() != null && this.commandStack.peek().getUri() != url) {
             temp.push(commandStack.pop());
         }
-        this.commandStack.pop().undo();
+        try {
+            this.commandStack.pop().undo();
+        } catch (NullPointerException e) {
+            throw new IllegalStateException("command stack is empty");
+        }
         while (temp.peek() != null) {
             this.commandStack.push(temp.pop());
         }

@@ -119,19 +119,14 @@ public class DocumentStoreImplTest {
         assertEquals("12", store.getMetadata(uri2, "142"));
     }
 
-
-    /* @Test
-    public void testUndo2() throws URISyntaxException, IOException {
+    @Test
+    public void testISERelated() throws IOException, URISyntaxException {
         DocumentStore store = new DocumentStoreImpl();
+        URI uri = new URI("http://bro.com");
         InputStream input = new ByteArrayInputStream("everyone".getBytes());
-        for (int i = 0; i < 20; i++) {
-            store.put(input, URI.create("http://bro" + i + ".com"), DocumentStore.DocumentFormat.TXT);
-        }
-        for (int i = 0; i < 20; i++) {
-            store.setMetadata(URI.create("http://bro" + i + ".com"), "bro", "yo");
-        }
-        store.undo(URI.create("http://bro4.com"));
-        assertNull(store.getMetadata(URI.create("http://bro4.com"), "bro"));
-        assertEquals("yo", store.getMetadata(URI.create("http://bro7.com"), "bro"));
-    } */
+        store.put(input, uri, DocumentStore.DocumentFormat.TXT);
+        store.undo();
+        assertThrows(IllegalStateException.class, store::undo);
+        assertThrows(IllegalStateException.class, () -> store.undo(uri));
+    }
 }
