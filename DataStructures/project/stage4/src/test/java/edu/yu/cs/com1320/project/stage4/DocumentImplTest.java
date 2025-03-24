@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.Test;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Set;
 
 
 public class DocumentImplTest {
@@ -60,5 +61,19 @@ public class DocumentImplTest {
         HashTable<String, String> copy = txt.getMetadata();
         assertEquals("54321", copy.get("bro"));
         assertEquals("46", copy.get("dude"));
+    }
+
+    @Test
+    public void testGetWords() throws URISyntaxException {
+        URI testURI = new URI("http://bro.com");
+        String s = "buncha guys";
+        Document txt = new DocumentImpl(testURI, s);
+        URI testURI2 = new URI("http://dude.com");
+        byte[] testBData = new byte[]{1, 2, 3, 4};
+        Document bData = new DocumentImpl(testURI, testBData);
+        Set<String> set = txt.getWords();
+        assertSame("buncha guys", txt.getDocumentTxt());
+        assertTrue(set.isEmpty());
+        assertEquals(1, txt.wordCount("buncha"));
     }
 }

@@ -12,7 +12,7 @@ import java.util.Set;
 
 public class DocumentImpl implements Document {
     // class variables
-    protected final HashTable<String, String> metadata;
+    private final HashTable<String, String> metadata;
     private final Map<String, Integer> words;
     private String text;
     private byte[] binaryData;
@@ -20,10 +20,10 @@ public class DocumentImpl implements Document {
 
     // constructors
     public DocumentImpl (URI uri, String txt) {
-        this.words = setAllWords();
         this.metadata = new HashTableImpl<>();
         this.uri = uri;
         this.text = txt;
+        this.words = setAllWords();
     }
     public DocumentImpl (URI uri, byte[] binaryData) {
         this.words = null;
@@ -89,18 +89,19 @@ public class DocumentImpl implements Document {
 
     @Override
     public Set<String> getWords() {
-        if (this.words == null) {
+        if (this.text == null) {
             return Set.of();
         }
         return this.words.keySet();
     }
 
     private HashMap<String, Integer> setAllWords() {
-        if (this.words == null) {
+        if (this.text == null) {
             return new HashMap<>();
         }
-        String text = this.text.replaceAll("[^a-zA-Z0-9]+", " ");
-        String[] textAsArray = text.split("\\s+");
+        String t = this.getDocumentTxt();
+        String result = t.replaceAll("[^a-zA-Z0-9 ]", "");
+        String[] textAsArray = result.split("//s+");
         HashMap<String, Integer> map = new HashMap<>();
         for (String s : textAsArray) {
             map.put(s, map.getOrDefault(s, 0) + 1);
