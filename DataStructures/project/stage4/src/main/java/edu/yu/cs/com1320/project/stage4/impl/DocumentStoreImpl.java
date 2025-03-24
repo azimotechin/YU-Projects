@@ -4,9 +4,7 @@ import edu.yu.cs.com1320.project.*;
 import edu.yu.cs.com1320.project.Stack;
 import edu.yu.cs.com1320.project.impl.*;
 import edu.yu.cs.com1320.project.stage4.*;
-import edu.yu.cs.com1320.project.undo.CommandSet;
-import edu.yu.cs.com1320.project.undo.GenericCommand;
-import edu.yu.cs.com1320.project.undo.Undoable;
+import edu.yu.cs.com1320.project.undo.*;
 
 import java.io.IOException;
 import java.io.InputStream;
