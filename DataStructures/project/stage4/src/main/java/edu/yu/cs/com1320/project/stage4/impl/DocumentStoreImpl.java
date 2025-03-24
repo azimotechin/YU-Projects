@@ -1,28 +1,30 @@
 package edu.yu.cs.com1320.project.stage4.impl;
 
 import edu.yu.cs.com1320.project.*;
+import edu.yu.cs.com1320.project.Stack;
 import edu.yu.cs.com1320.project.impl.*;
 import edu.yu.cs.com1320.project.stage4.*;
-import edu.yu.cs.com1320.project.undo.Command;
+import edu.yu.cs.com1320.project.undo.CommandSet;
+import edu.yu.cs.com1320.project.undo.GenericCommand;
+import edu.yu.cs.com1320.project.undo.Undoable;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Consumer;
 
 public class DocumentStoreImpl implements DocumentStore {
     // variables
     private final HashTable<URI, Document> documents;
-    private final Stack<Command> commandStack;
-
+    private final Stack<Undoable> commandStack;
+    private final Trie<Document> docTrie;
     // constructor
     public DocumentStoreImpl () {
         this.documents = new HashTableImpl<>();
         this.commandStack = new StackImpl<>();
+        this.docTrie = new TrieImpl<>();
     }
 
     // set metadata
@@ -31,7 +33,7 @@ public class DocumentStoreImpl implements DocumentStore {
         this.getMetadata(uri, key);
         String str = this.getMetadata(uri, key);
         Consumer<URI> consumer = url -> this.get(url).setMetadataValue(key, str);
-        Command command = new Command(uri, consumer);
+        Undoable command = new GenericCommand<>(uri, consumer);
         this.commandStack.push(command);
         return get(uri).setMetadataValue(key, value);
     }
@@ -58,8 +60,19 @@ public class DocumentStoreImpl implements DocumentStore {
         }
         Document doc = get(uri);
         Consumer<URI> consumer = url -> this.documents.put(url, doc);
-        Command command = new Command(uri, consumer);
+        Undoable command = new GenericCommand<>(uri, consumer);
         this.commandStack.push(command);
+        Document document = docCreate(input, uri, format);
+        if (document != null) {
+            this.documents.put(uri, document);
+            for (String s : document.getWords()) {
+                this.docTrie.put(s,document);
+            }
+        }
+        return prev_doc_hash_code;
+    }
+
+    private Document docCreate(InputStream input, URI uri, DocumentFormat format) throws IOException {
         Document document = null;
         if (format == DocumentFormat.TXT) {
             String text = new String(input.readAllBytes(), StandardCharsets.UTF_8);
@@ -69,10 +82,7 @@ public class DocumentStoreImpl implements DocumentStore {
             byte[] binaryData = input.readAllBytes();
             document = new DocumentImpl(uri, binaryData);
         }
-        if (document != null) {
-            this.documents.put(uri, document);
-        }
-        return prev_doc_hash_code;
+        return document;
     }
 
     // get doc
@@ -89,10 +99,12 @@ public class DocumentStoreImpl implements DocumentStore {
        }
        Document doc = get(url);
        Consumer<URI> consumer = uri -> this.documents.put(uri, doc);
-       Command command = new Command(url, consumer);
+       Undoable command = new GenericCommand<>(url, consumer);
        this.commandStack.push(command);
        this.documents.put(url, null);
-       return true;
+        for (String s : doc.getWords()) {
+            this.docTrie.delete(s,doc);
+        }       return true;
     }
 
     // undo last action
@@ -108,11 +120,32 @@ public class DocumentStoreImpl implements DocumentStore {
     // undo last action on specific doc
     @Override
     public void undo(URI url) throws IllegalStateException {
-        Stack<Command> temp = new StackImpl<>();
-        while (this.commandStack.peek() != null && this.commandStack.peek().getUri() != url) {
-            temp.push(commandStack.pop());
+        Stack<Undoable> temp = new StackImpl<>();
+        while (this.commandStack.peek() != null) {
+            Undoable command = this.commandStack.peek();
+            if (command instanceof CommandSet) {
+                @SuppressWarnings("unchecked")
+                CommandSet<URI> commandSet = (CommandSet<URI>) command;
+                if (commandSet.containsTarget(url)) {
+                    break;
+                }
+            }
+            if (command instanceof GenericCommand) {
+                @SuppressWarnings("unchecked")
+                GenericCommand<URI> genericCommand = (GenericCommand<URI>) command;
+                if (genericCommand.getTarget() == url) {
+                    break;
+                }
+            }
+            temp.push(this.commandStack.pop());
         }
-        try {
+        if (this.commandStack.peek() instanceof CommandSet) {
+            @SuppressWarnings("unchecked")
+            CommandSet<URI> commandSet = (CommandSet<URI>) this.commandStack.peek();
+            if (commandSet.undo(url)) {
+                this.commandStack.pop();
+            }
+        } else try {
             this.commandStack.pop().undo();
         } catch (NullPointerException e) {
             throw new IllegalStateException("command stack is empty");
@@ -124,51 +157,166 @@ public class DocumentStoreImpl implements DocumentStore {
 
     @Override
     public List<Document> search(String keyword) {
-        return List.of();
+        Comparator<Document> comp = Comparator.comparingInt((Document doc) -> doc.wordCount(keyword)).reversed();
+        return this.docTrie.getSorted(keyword, comp);
     }
 
     @Override
     public List<Document> searchByPrefix(String keywordPrefix) {
-        return List.of();
+        Comparator<Document> comp = Comparator.comparingInt((Document doc) -> doc.wordCount(keywordPrefix)).reversed();
+        return this.docTrie.getAllWithPrefixSorted(keywordPrefix, comp);
     }
 
     @Override
     public Set<URI> deleteAll(String keyword) {
-        return Set.of();
+        CommandSet<URI> command = new CommandSet<>();
+        Set<Document> hits = this.docTrie.deleteAll(keyword);
+        for (Document doc : hits) {
+            Consumer<URI> consumer = uri -> this.documents.put(uri, doc);
+            GenericCommand<URI> genericCommand = new GenericCommand<>(doc.getKey(), consumer);
+            if (hits.size() == 1) {
+                this.commandStack.push(genericCommand);
+
+            }
+            command.addCommand(genericCommand);
+        }
+        if (hits.size() > 1) {
+            this.commandStack.push(command);
+        }
+        return deletionSet(hits);
     }
 
     @Override
     public Set<URI> deleteAllWithPrefix(String keywordPrefix) {
-        return Set.of();
+        CommandSet<URI> command = new CommandSet<>();
+        Set<Document> hits = this.docTrie.deleteAllWithPrefix(keywordPrefix);
+        for (Document doc : hits) {
+            Consumer<URI> consumer = uri -> this.documents.put(uri, doc);
+            GenericCommand<URI> genericCommand = new GenericCommand<>(doc.getKey(), consumer);
+            if (hits.size() == 1) {
+                this.commandStack.push(genericCommand);
+            }
+            command.addCommand(genericCommand);
+        }
+        if (hits.size() > 1) {
+            this.commandStack.push(command);
+        }
+        return deletionSet(hits);
     }
 
     @Override
     public List<Document> searchByMetadata(Map<String, String> keysValues) {
-        return List.of();
+        List<Document> list = new ArrayList<>();
+        for (Document d : this.documents.values()) {
+            boolean matches = true;
+            for (String s : keysValues.keySet()) {
+                if (!keysValues.get(s).equals(d.getMetadataValue(s))) {
+                    matches = false;
+                    break;
+                }
+            }
+            if (matches) {
+                list.add(d);
+            }
+        }
+        return list;
     }
 
     @Override
     public List<Document> searchByKeywordAndMetadata(String keyword, Map<String, String> keysValues) {
-        return List.of();
+        List<Document> doubleSearch = new ArrayList<>();
+        List<Document> keywordSearch = search(keyword);
+        List<Document> metadataSearch = searchByMetadata(keysValues);
+        if (keywordSearch.isEmpty() || metadataSearch.isEmpty()) {
+            return doubleSearch;
+        }
+        for (Document d : keywordSearch) {
+            if (metadataSearch.contains(d)) {
+              doubleSearch.add(d);
+            }
+        }
+        return doubleSearch;
     }
 
     @Override
     public List<Document> searchByPrefixAndMetadata(String keywordPrefix, Map<String, String> keysValues) {
-        return List.of();
+        List<Document> doubleSearch = new ArrayList<>();
+        List<Document> prefixSearch = searchByPrefix(keywordPrefix);
+        List<Document> metadataSearch = searchByMetadata(keysValues);
+        if (prefixSearch.isEmpty() || metadataSearch.isEmpty()) {
+            return doubleSearch;
+        }
+        for (Document d : prefixSearch) {
+            if (metadataSearch.contains(d)) {
+                doubleSearch.add(d);
+            }
+        }
+        return doubleSearch;
     }
 
     @Override
     public Set<URI> deleteAllWithMetadata(Map<String, String> keysValues) {
-        return Set.of();
+        CommandSet<URI> command = new CommandSet<>();
+        List<Document> metadataSearch = searchByMetadata(keysValues);
+        for (Document doc : metadataSearch) {
+            Consumer<URI> consumer = uri -> this.documents.put(uri, doc);
+            GenericCommand<URI> genericCommand = new GenericCommand<>(doc.getKey(), consumer);
+            if (metadataSearch.size() == 1) {
+                this.commandStack.push(genericCommand);
+            }
+            command.addCommand(genericCommand);
+        }
+        if (metadataSearch.size() != 1) {
+            this.commandStack.push(command);
+        }
+        return deletionSet(metadataSearch);
     }
 
     @Override
     public Set<URI> deleteAllWithKeywordAndMetadata(String keyword, Map<String, String> keysValues) {
-        return Set.of();
+        CommandSet<URI> command = new CommandSet<>();
+        List<Document> keyMetaSearch = searchByKeywordAndMetadata(keyword, keysValues);
+        for (Document doc : keyMetaSearch) {
+            Consumer<URI> consumer = uri -> this.documents.put(uri, doc);
+            GenericCommand<URI> genericCommand = new GenericCommand<>(doc.getKey(), consumer);
+            if (keyMetaSearch.size() == 1) {
+                this.commandStack.push(genericCommand);
+            }
+            command.addCommand(genericCommand);
+        }
+        if (keyMetaSearch.size() != 1) {
+            this.commandStack.push(command);
+        }
+        return deletionSet(keyMetaSearch);
     }
 
     @Override
     public Set<URI> deleteAllWithPrefixAndMetadata(String keywordPrefix, Map<String, String> keysValues) {
-        return Set.of();
+        CommandSet<URI> command = new CommandSet<>();
+        List<Document> preMetaSearch = searchByPrefixAndMetadata(keywordPrefix, keysValues);
+        for (Document doc : preMetaSearch) {
+            Consumer<URI> consumer = uri -> this.documents.put(uri, doc);
+            GenericCommand<URI> genericCommand = new GenericCommand<>(doc.getKey(), consumer);
+            if (preMetaSearch.size() == 1) {
+                this.commandStack.push(genericCommand);
+            }
+            command.addCommand(genericCommand);
+        }
+        if (preMetaSearch.size() != 1) {
+            this.commandStack.push(command);
+        }
+        return deletionSet(preMetaSearch);
+    }
+
+    private Set<URI> deletionSet(Collection<Document> coll) {
+        Set<URI> faded = new HashSet<>();
+        for (Document d : coll) {
+            for (String s : d.getWords()){
+                this.docTrie.delete(s, d);
+            }
+            faded.add(d.getKey());
+            this.documents.put(d.getKey(), null);
+        }
+        return faded;
     }
 }

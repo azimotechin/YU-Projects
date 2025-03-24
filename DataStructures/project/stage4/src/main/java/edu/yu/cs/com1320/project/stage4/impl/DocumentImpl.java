@@ -6,22 +6,27 @@ import edu.yu.cs.com1320.project.stage4.Document;
 
 import java.net.URI;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 
 public class DocumentImpl implements Document {
     // class variables
-    private final HashTable<String, String> metadata;
+    protected final HashTable<String, String> metadata;
+    private final Map<String, Integer> words;
     private String text;
     private byte[] binaryData;
     private final URI uri;
 
     // constructors
     public DocumentImpl (URI uri, String txt) {
+        this.words = setAllWords();
         this.metadata = new HashTableImpl<>();
         this.uri = uri;
         this.text = txt;
     }
     public DocumentImpl (URI uri, byte[] binaryData) {
+        this.words = null;
         this.metadata = new HashTableImpl<>();
         this.uri = uri;
         this.binaryData = binaryData;
@@ -73,14 +78,34 @@ public class DocumentImpl implements Document {
         return this.uri;
     }
 
+    //words
     @Override
     public int wordCount(String word) {
-        return 0;
+        if (this.words == null) {
+            return 0;
+        }
+        return this.words.getOrDefault(word, 0);
     }
 
     @Override
     public Set<String> getWords() {
-        return Set.of();
+        if (this.words == null) {
+            return Set.of();
+        }
+        return this.words.keySet();
+    }
+
+    private HashMap<String, Integer> setAllWords() {
+        if (this.words == null) {
+            return new HashMap<>();
+        }
+        String text = this.text.replaceAll("[^a-zA-Z0-9]+", " ");
+        String[] textAsArray = text.split("\\s+");
+        HashMap<String, Integer> map = new HashMap<>();
+        for (String s : textAsArray) {
+            map.put(s, map.getOrDefault(s, 0) + 1);
+        }
+        return map;
     }
 
     //comparators
