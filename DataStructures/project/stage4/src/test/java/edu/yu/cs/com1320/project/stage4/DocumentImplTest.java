@@ -66,14 +66,14 @@ public class DocumentImplTest {
     @Test
     public void testGetWords() throws URISyntaxException {
         URI testURI = new URI("http://bro.com");
-        String s = "buncha guys";
+        String s = "buncha";
         Document txt = new DocumentImpl(testURI, s);
         URI testURI2 = new URI("http://dude.com");
         byte[] testBData = new byte[]{1, 2, 3, 4};
         Document bData = new DocumentImpl(testURI, testBData);
         Set<String> set = txt.getWords();
-        assertSame("buncha guys", txt.getDocumentTxt());
-        assertTrue(set.isEmpty());
+        assertSame("buncha", txt.getDocumentTxt());
+        assertFalse(set.isEmpty());
         assertEquals(1, txt.wordCount("buncha"));
     }
 }
