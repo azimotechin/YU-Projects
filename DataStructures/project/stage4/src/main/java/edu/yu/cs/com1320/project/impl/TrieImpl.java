@@ -65,7 +65,10 @@ public class TrieImpl<Value> implements Trie<Value> {
     @Override
     public Set<Value> get(String key) {
         Node<Value> node = get(this.root, key, 0);
-        return node.values;
+        if (node != null) {
+            return node.values;
+        }
+        return Set.of();
     }
 
     private Node<Value> get(Node<Value> x, String key, int d) {
@@ -82,9 +85,12 @@ public class TrieImpl<Value> implements Trie<Value> {
     @Override
     public List<Value> getAllWithPrefixSorted(String prefix, Comparator<Value> comparator) {
         Node<Value> n = get(this.root, prefix, 0);
-        List<Value> sorted = new ArrayList<>(getAllWithPrefix(n));
-        sorted.sort(comparator);
-        return sorted;
+        if (n != null) {
+            List<Value> sorted = new ArrayList<>(getAllWithPrefix(n));
+            sorted.sort(comparator);
+            return sorted;
+        }
+        return List.of();
     }
 
     private Set<Value> getAllWithPrefix(Node<Value> x) {
@@ -99,7 +105,7 @@ public class TrieImpl<Value> implements Trie<Value> {
 
     @Override
     public Set<Value> deleteAllWithPrefix(String prefix) {
-        Set<Value> deleted = getAllWithPrefix(this.root);
+        Set<Value> deleted = new HashSet<>(getAllWithPrefix(get(this.root, prefix, 0)));
         this.root = deleteAllWithPrefix(this.root, prefix, 0);
         return deleted;
     }
@@ -127,7 +133,7 @@ public class TrieImpl<Value> implements Trie<Value> {
 
     @Override
     public Set<Value> deleteAll(String key) {
-        Set<Value> deleted = get(key);
+        Set<Value> deleted = new HashSet<>(get(key));
         this.root = deleteAll(this.root, key, 0);
         return deleted;
     }
