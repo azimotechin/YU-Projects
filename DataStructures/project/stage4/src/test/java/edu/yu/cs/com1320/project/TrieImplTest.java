@@ -4,12 +4,8 @@ import edu.yu.cs.com1320.project.impl.TrieImpl;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import edu.yu.cs.com1320.project.stage4.Document;
-import edu.yu.cs.com1320.project.stage4.impl.DocumentImpl;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.net.URI;
 import java.util.*;
 
 public class TrieImplTest {
