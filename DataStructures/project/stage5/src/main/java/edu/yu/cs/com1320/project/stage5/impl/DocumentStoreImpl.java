@@ -67,6 +67,7 @@ public class DocumentStoreImpl implements DocumentStore {
         }
         Document newDoc = docCreate(input, uri, format);
         undoAndTrie(prevDocHashCode, prevDoc, uri, newDoc);
+        newDoc.setLastUseTime(System.nanoTime());
         this.docMinHeap.insert(newDoc);
         this.documents.put(uri, newDoc);
         checkLimits();

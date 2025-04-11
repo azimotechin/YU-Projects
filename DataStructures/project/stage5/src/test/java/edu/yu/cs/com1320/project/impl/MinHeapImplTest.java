@@ -28,4 +28,12 @@ class MinHeapImplTest {
         heap.reHeapify(d3);
         assertEquals(d3, heap.remove());
     }
+
+    @Test
+    public void testDoubleArraySize() {
+        MinHeapImpl<Integer> heap = new MinHeapImpl<>();
+        for (int i = 1; i < 12; i++) {
+            heap.insert(i); // Fill to capacity
+        }
+    }
 }
