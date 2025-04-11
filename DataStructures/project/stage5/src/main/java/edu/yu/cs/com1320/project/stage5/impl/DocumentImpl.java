@@ -1,0 +1,148 @@
+package edu.yu.cs.com1320.project.stage5.impl;
+
+import edu.yu.cs.com1320.project.HashTable;
+import edu.yu.cs.com1320.project.impl.HashTableImpl;
+import edu.yu.cs.com1320.project.stage5.Document;
+
+import java.net.URI;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
+
+public class DocumentImpl implements Document, Comparable<Document>{
+    // class variables
+    private final HashTable<String, String> metadata;
+    private final Map<String, Integer> words;
+    private String text;
+    private byte[] binaryData;
+    private final URI uri;
+    private long lastUseTime;
+
+    // constructors
+    public DocumentImpl (URI uri, String txt) {
+        this.metadata = new HashTableImpl<>();
+        this.uri = uri;
+        this.text = txt;
+        this.words = setAllWords();
+        this.lastUseTime = System.nanoTime();
+    }
+    public DocumentImpl (URI uri, byte[] binaryData) {
+        this.words = null;
+        this.metadata = new HashTableImpl<>();
+        this.uri = uri;
+        this.binaryData = binaryData;
+        this.lastUseTime = -1;
+    }
+
+    // getters and setters
+    @Override
+    public String setMetadataValue(String key, String value) {
+        String oldValue = this.getMetadataValue(key);
+        this.metadata.put(key,value);
+        return oldValue;
+    }
+    @Override
+    public String getMetadataValue(String key) {
+        if (key == null || key.isEmpty()) {
+            throw new IllegalArgumentException("key is null or blank");
+        }
+        if (this.metadata.containsKey(key)) {
+            return this.metadata.get(key);
+        }
+        return null;
+    }
+    @Override
+    public HashTable<String, String> getMetadata() {
+        HashTable<String, String> copy = new HashTableImpl<>();
+        for (String key : this.metadata.keySet()) {
+            copy.put(key, this.metadata.get(key));
+        }
+        return copy;
+    }
+    @Override
+    public String getDocumentTxt() {
+        try{
+            return this.text;
+        } catch (NullPointerException e){
+            return null;
+        }
+    }
+    @Override
+    public byte[] getDocumentBinaryData() {
+        try{
+            return this.binaryData;
+        } catch (NullPointerException e) {
+            return null;
+        }
+    }
+    @Override
+    public URI getKey() {
+        return this.uri;
+    }
+
+    //words
+    @Override
+    public int wordCount(String word) {
+        if (this.words == null) {
+            return 0;
+        }
+        return this.words.getOrDefault(word, 0);
+    }
+
+    @Override
+    public Set<String> getWords() {
+        if (this.words == null) {
+            return Set.of();
+        }
+        return this.words.keySet();
+    }
+
+    @Override
+    public long getLastUseTime() {
+        return this.lastUseTime;
+    }
+
+    @Override
+    public void setLastUseTime(long timeInNanoseconds) {
+        this.lastUseTime = timeInNanoseconds;
+    }
+
+    private HashMap<String, Integer> setAllWords() {
+        if (this.text == null) {
+            return new HashMap<>();
+        }
+        String t = this.getDocumentTxt();
+        String result = t.replaceAll("[^a-zA-Z0-9 ]", "");
+        String[] textAsArray = result.split("\\s+");
+        HashMap<String, Integer> map = new HashMap<>();
+        for (String s : textAsArray) {
+            map.put(s, map.getOrDefault(s, 0) + 1);
+        }
+        return map;
+    }
+
+    //comparators
+    @Override
+    public int hashCode() {
+        int result = uri.hashCode();
+        result = 31 * result + (text != null ? text.hashCode() : 0);
+        result = 31 * result + Arrays.hashCode(binaryData);
+        return Math.abs(result);
+    }
+    @Override
+    public boolean equals(Object other) {
+        if (this == other) {
+            return true;
+        }
+        if (other == null || getClass() != other.getClass()) {
+            return false;
+        }
+        return this.hashCode() == other.hashCode();
+    }
+
+    @Override
+    public int compareTo(Document o) {
+        return Long.compare(this.getLastUseTime(), o.getLastUseTime());
+    }
+}
