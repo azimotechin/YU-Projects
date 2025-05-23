@@ -14,7 +14,7 @@ public class DocumentImpl implements Document, Comparable<Document>{
     private Map<String, Integer> wordCountMap;
     private String text;
     private byte[] binaryData;
-    private URI uri;
+    private final URI uri;
     private long lastUseTime;
 
     // constructors

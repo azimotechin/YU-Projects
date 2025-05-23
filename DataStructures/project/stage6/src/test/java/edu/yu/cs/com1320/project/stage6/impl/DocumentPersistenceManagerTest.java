@@ -28,7 +28,7 @@ public class DocumentPersistenceManagerTest {
 
     @AfterEach
     public void cleanup() {
-        //deleteDirectory(baseDir);
+        deleteDirectory(baseDir);
     }
 
     @Test
