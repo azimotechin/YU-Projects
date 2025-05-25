@@ -116,7 +116,7 @@ public class DocumentPersistenceManager implements PersistenceManager<URI, Docum
         }
         File filePath = new File(baseDir, authority);
         if (path == null || path.equals("/") || path.isEmpty()) {
-            return new File(filePath, "index.json");
+            return new File(baseDir, authority + ".json");
         }
         String[] segments = path.replaceFirst("^/", "").split("/");
         for (int i = 0; i < segments.length - 1; i++) {
