@@ -39,7 +39,7 @@ public class BTreeImplTest {
 
     @AfterEach
     public void cleanUp() {
-        deleteDir(baseDir);
+        //deleteDir(baseDir);
         wordCountMap.clear();
     }
 
@@ -95,7 +95,7 @@ public class BTreeImplTest {
         bTree.moveToDisk(uri);
         Document result = bTree.get(uri);
         assertEquals("disk data", result.getDocumentTxt());
-        File file = new File(baseDir, "test_com_doc1.json");
+        File file = new File(baseDir, "test.com" + File.separator + "doc1.json");
         assertFalse(file.exists());
     }
 

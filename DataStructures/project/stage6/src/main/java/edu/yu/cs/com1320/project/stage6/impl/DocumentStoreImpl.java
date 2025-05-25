@@ -121,12 +121,11 @@ public class DocumentStoreImpl implements DocumentStore {
         }
         Document newDoc = docCreate(input, uri, format);
         undoAndTrie(prevDocHashCode, prevDoc, uri, newDoc);
-        newDoc.setLastUseTime(System.nanoTime());
-        this.docMinHeap.insert(new DocumentReference(newDoc.getKey()));
         this.documents.put(uri, newDoc);
         if (prevDoc == null) {
-            areDocsInMemory.put(uri, true);
+            this.docMinHeap.insert(new DocumentReference(uri));
         }
+        areDocsInMemory.put(uri, true);
         checkLimits();
         return prevDocHashCode;
     }
@@ -191,7 +190,11 @@ public class DocumentStoreImpl implements DocumentStore {
         Document doc = this.documents.get(url);
         if (doc != null) {
             doc.setLastUseTime(System.nanoTime());
-            this.docMinHeap.reHeapify(new DocumentReference(doc.getKey()));
+            try {
+                this.docMinHeap.reHeapify(new DocumentReference(doc.getKey()));
+            } catch (NoSuchElementException e) {
+                docMinHeap.insert(new DocumentReference(doc.getKey()));
+            }
             areDocsInMemory.put(doc.getKey(), true);
         }
         return doc;
@@ -564,29 +567,21 @@ public class DocumentStoreImpl implements DocumentStore {
 
     private void overDocBytesCheck() {
         int i = 0;
+        Map<URI, Integer> bytes = new HashMap<>();
         for (URI uri : docsInMemory()) {
+            int j;
             Document d = documents.get(uri);
             if (d.getDocumentTxt() != null) {
-                i += d.getDocumentTxt().getBytes().length;
+                j = d.getDocumentTxt().getBytes().length;
             } else {
-                i += d.getDocumentBinaryData().length;
+                j = d.getDocumentBinaryData().length;
             }
-            if (!areDocsInMemory.get(d.getKey())) {
-                try {
-                    documents.moveToDisk(d.getKey());
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
-            }
+            i += j;
+            bytes.put(uri, j);
         }
         while (i > this.maxDocBytes) {
             DocumentReference ref = this.docMinHeap.remove();
-            Document deletedDoc = this.documents.get(ref.getUri());
-            if (deletedDoc.getDocumentTxt() != null) {
-                i -= deletedDoc.getDocumentTxt().getBytes().length;
-            } else {
-                i -= deletedDoc.getDocumentBinaryData().length;
-            }
+            i -= bytes.remove(ref.getUri());
             try {
                 documents.moveToDisk(ref.getUri());
             } catch (IOException e) {

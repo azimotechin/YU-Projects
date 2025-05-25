@@ -30,7 +30,7 @@ public class DocumentImpl implements Document, Comparable<Document>{
         this.metadata = new HashMap<>();
         this.uri = uri;
         this.binaryData = binaryData;
-        this.lastUseTime = -1;
+        this.lastUseTime = System.nanoTime();
     }
 
     // getters and setters

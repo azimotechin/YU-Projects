@@ -161,12 +161,14 @@ public class BTreeImpl<Key extends Comparable<Key>, Value> implements BTree<Key,
         if (k == null) {
             throw new IllegalArgumentException("key is null");
         }
-        if (get(k) == null) {
-            return;
-        }
         Value v = get(k);
+        if (v == null) return;
         pm.serialize(k, v);
-        put(this.root, k, null, this.height);
+
+        Entry e = get(this.root, k, this.height);
+        if (e != null) {
+            e.val = null;
+        }
     }
 
     @Override
