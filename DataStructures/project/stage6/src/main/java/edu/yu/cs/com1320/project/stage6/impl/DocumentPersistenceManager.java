@@ -12,9 +12,11 @@ import java.net.URI;
 import java.util.HashMap;
 
 public class DocumentPersistenceManager implements PersistenceManager<URI, Document> {
+    // vars
     private final File baseDir;
     private final Gson gson;
 
+    // nested class
     private static class DocumentAdapter implements JsonSerializer<Document>, JsonDeserializer<Document> {
         @Override
         public JsonElement serialize(Document doc, Type type, JsonSerializationContext context) {
@@ -45,14 +47,15 @@ public class DocumentPersistenceManager implements PersistenceManager<URI, Docum
             doc.setMetadata(metadata);
             return doc;
         }
-
     }
 
+    // constructor
     public DocumentPersistenceManager(File baseDir) {
         this.baseDir = (baseDir == null) ? new File(System.getProperty("user.dir")) : baseDir;
         this.gson = new GsonBuilder().registerTypeAdapter(Document.class, new DocumentAdapter()).create();
     }
 
+    // public methods
     @Override
     public void serialize(URI uri, Document val) throws IOException {
         if (uri == null || val == null) {
@@ -90,6 +93,7 @@ public class DocumentPersistenceManager implements PersistenceManager<URI, Docum
         return file.delete();
     }
 
+    // private methods
     private File getFileFromUri(URI uri) throws IOException {
         File file = getFile(uri);
         File parentDir = file.getParentFile();
@@ -107,27 +111,18 @@ public class DocumentPersistenceManager implements PersistenceManager<URI, Docum
         }
         String authority = uri.getHost();
         String path = uri.getPath();
-
         if (authority == null) {
             throw new IllegalArgumentException("URI must have a host");
         }
-
         File filePath = new File(baseDir, authority);
-
-        // Default to "index.json" if path is null or just "/"
         if (path == null || path.equals("/") || path.isEmpty()) {
             return new File(filePath, "index.json");
         }
-
-        // Remove leading slash and split into directories
         String[] segments = path.replaceFirst("^/", "").split("/");
         for (int i = 0; i < segments.length - 1; i++) {
             filePath = new File(filePath, segments[i]);
         }
-
         String filename = segments[segments.length - 1] + ".json";
         return new File(filePath, filename);
     }
-
-
 }

@@ -24,6 +24,7 @@ public class DocumentStoreImpl implements DocumentStore {
     private int maxDocBytes;
     private final Map<URI, Boolean> areDocsInMemory;
 
+    // nested class
     private class DocumentReference implements Comparable<DocumentReference> {
         private final URI uri;
 
@@ -62,7 +63,7 @@ public class DocumentStoreImpl implements DocumentStore {
         }
     }
 
-    // constructor
+    // constructors
     public DocumentStoreImpl () {
         this.documents = new BTreeImpl<>();
         documents.setPersistenceManager(new DocumentPersistenceManager(null));
@@ -203,7 +204,7 @@ public class DocumentStoreImpl implements DocumentStore {
     // deleter
     @Override
     public boolean delete(URI url) {
-        Document prevDoc = this.documents.get(url);
+        Document prevDoc = get(url);
         if (prevDoc == null) {
            return false;
         }

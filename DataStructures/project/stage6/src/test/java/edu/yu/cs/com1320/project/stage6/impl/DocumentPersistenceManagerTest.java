@@ -1,7 +1,6 @@
 package edu.yu.cs.com1320.project.stage6.impl;
 
 import edu.yu.cs.com1320.project.stage6.Document;
-import edu.yu.cs.com1320.project.stage6.DocumentStore;
 import org.junit.jupiter.api.*;
 
 import java.io.File;
@@ -228,7 +227,6 @@ public class DocumentPersistenceManagerTest {
     @Test
     public void testDocumentPersistedToCorrectFilePath() throws IOException {
         URI uri = URI.create("http://example.com/apple/banana/cherry");
-        String text = "Test content";
         Document doc = new DocumentImpl(uri, "text", Map.of("text", 1));
         dpm.serialize(uri, doc);
         File expectedFile = new File(baseDir,

@@ -6,14 +6,16 @@ import edu.yu.cs.com1320.project.stage6.PersistenceManager;
 import java.io.IOException;
 
 public class BTreeImpl<Key extends Comparable<Key>, Value> implements BTree<Key, Value> {
-    private final int MAX = 6; // Max number of children per node
+    // vars
+    private final int MAX = 6;
     private Node root;
     private int height;
     @SuppressWarnings("rawtypes")
     private PersistenceManager pm;
 
+    // nested classes
     private class Node {
-        private int entryCount; // Number of entries in the node
+        private int entryCount;
         private final Entry[] entries;
 
         @SuppressWarnings({"unchecked"})
@@ -35,12 +37,14 @@ public class BTreeImpl<Key extends Comparable<Key>, Value> implements BTree<Key,
         }
     }
 
+    // constructor
     public BTreeImpl() {
         this.root = new Node();
         this.height = 0;
         this.pm = null;
     }
 
+    // getter
     @SuppressWarnings("unchecked")
     @Override
     public Value get(Key key) {
@@ -78,6 +82,7 @@ public class BTreeImpl<Key extends Comparable<Key>, Value> implements BTree<Key,
         return null;
     }
 
+    // setter
     @SuppressWarnings("unchecked")
     @Override
     public Value put(Key k, Value v) {
@@ -155,6 +160,7 @@ public class BTreeImpl<Key extends Comparable<Key>, Value> implements BTree<Key,
         return newNode;
     }
 
+    // disk-related methods
     @SuppressWarnings("unchecked")
     @Override
     public void moveToDisk(Key k) throws IOException {
@@ -176,6 +182,7 @@ public class BTreeImpl<Key extends Comparable<Key>, Value> implements BTree<Key,
         this.pm = pm;
     }
 
+    // comparing methods
     private boolean less(Key k1, Key k2) {
         return k1.compareTo(k2) < 0;
     }
