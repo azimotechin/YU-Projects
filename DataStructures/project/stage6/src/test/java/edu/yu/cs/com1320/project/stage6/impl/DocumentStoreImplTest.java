@@ -134,7 +134,7 @@ public class DocumentStoreImplTest {
         URI uri2 = URI.create("doc://bytes2");
         store.put(stringToInputStream("small"), uri1, DocumentFormat.TXT);
         store.put(stringToInputStream("document of size large"), uri2, DocumentFormat.TXT);
-        File file = new File(baseDir, "bytes1");
+        File file = new File(baseDir, "bytes1.json");
         assertTrue(file.exists());
         assertNotNull(store.get(uri2));
     }
@@ -266,5 +266,143 @@ public class DocumentStoreImplTest {
         assertNull(store.get(uri2));
         store.undo();
         assertNull(store.get(uri1));
+    }
+
+    @Test
+    public void stage4WordCount() {
+        URI uri = URI.create("doc://test");
+        String text = "apple banana orange";
+        Map<String, Integer> wordMap = new HashMap<>();
+        wordMap.put("apple", 1);
+        wordMap.put("banana", 1);
+        wordMap.put("orange", 1);
+        Document doc = new DocumentImpl(uri, text, wordMap);
+        assertEquals(1, doc.wordCount("banana"));
+    }
+
+    @Test
+    public void stage4CaseSensitiveWordCount() {
+        URI uri = URI.create("doc://test");
+        String text = "Apple apple apple";
+        Map<String, Integer> wordMap = new HashMap<>();
+        wordMap.put("Apple", 1);
+        wordMap.put("apple", 2);
+        Document doc = new DocumentImpl(uri, text, wordMap);
+        assertEquals(1, doc.wordCount("Apple"));
+    }
+
+    @Test
+    public void stage4DeleteAllWithPrefixExists() throws IOException {
+        DocumentStore store = new DocumentStoreImpl();
+        URI uri1 = URI.create("doc://doc1");
+        URI uri2 = URI.create("doc://doc2");
+        String text1 = "Application of science is important. She applied herself.";
+        String text2 = "Appetizers were ready before the meal. He had an appetite.";
+        store.put(new ByteArrayInputStream(text1.getBytes()), uri1, DocumentStore.DocumentFormat.TXT);
+        store.put(new ByteArrayInputStream(text2.getBytes()), uri2, DocumentStore.DocumentFormat.TXT);
+        Set<URI> deleted = store.deleteAllWithPrefix("app");
+        assertEquals(Set.of(uri1, uri2), deleted);
+        List<Document> results = store.searchByPrefix("app");
+        assertTrue(results.isEmpty());
+    }
+
+    @Test
+    public void stage6PushToDiskViaMaxDocCountBringBackInViaMetadataSearch() throws Exception {
+        DocumentStore store = new DocumentStoreImpl(new File(System.getProperty("user.dir")));
+        URI uri1 = new URI("doc://1");
+        URI uri2 = new URI("doc://2");
+
+        String txt1 = "doc1 text";
+        String txt2 = "doc2 text";
+
+        store.setMaxDocumentCount(1);
+
+        store.put(new ByteArrayInputStream(txt1.getBytes()), uri1, DocumentFormat.TXT);
+        store.setMetadata(uri1, "type", "text");
+
+        store.put(new ByteArrayInputStream(txt2.getBytes()), uri2, DocumentFormat.TXT);
+        store.setMetadata(uri2, "type", "text");
+
+        // At this point, doc1 should be on disk
+        List<Document> result = store.searchByMetadata(Map.of("type", "text"));
+
+        // Make sure both documents are back in memory
+        assertTrue(result.stream().anyMatch(doc -> doc.getKey().equals(uri1)));
+        assertTrue(result.stream().anyMatch(doc -> doc.getKey().equals(uri2)));
+    }
+
+    @Test
+    public void stage6PushToDiskViaMaxBytesBringBackInViaMetadataSearch() throws Exception {
+        DocumentStore store = new DocumentStoreImpl(new File(System.getProperty("user.dir")));
+        URI uri1 = new URI("doc://1");
+        URI uri2 = new URI("doc://2");
+
+        String txt1 = "a".repeat(200);
+        String txt2 = "b".repeat(200);
+
+        store.setMaxDocumentBytes(200); // only one doc fits
+
+        store.put(new ByteArrayInputStream(txt1.getBytes()), uri1, DocumentFormat.TXT);
+        store.setMetadata(uri1, "type", "text");
+
+        store.put(new ByteArrayInputStream(txt2.getBytes()), uri2, DocumentFormat.TXT);
+        store.setMetadata(uri2, "type", "text");
+
+        // doc1 should be on disk
+        List<Document> result = store.searchByMetadata(Map.of("type", "text"));
+
+        assertTrue(result.stream().anyMatch(doc -> doc.getKey().equals(uri1)));
+        assertTrue(result.stream().anyMatch(doc -> doc.getKey().equals(uri2)));
+    }
+
+    @Test
+    public void stage6PushToDiskViaMaxDocCount() throws Exception {
+        DocumentStore store = new DocumentStoreImpl(new File(System.getProperty("user.dir")));
+        store.setMaxDocumentCount(2);
+
+        URI uri1 = new URI("doc://1");
+        URI uri2 = new URI("doc://2");
+        URI uri3 = new URI("doc://3");
+
+        store.put(new ByteArrayInputStream("doc1".getBytes()), uri1, DocumentFormat.TXT);
+        store.put(new ByteArrayInputStream("doc2".getBytes()), uri2, DocumentFormat.TXT);
+
+        // Both are in memory
+        assertNotNull(store.get(uri1));
+        assertNotNull(store.get(uri2));
+
+        store.put(new ByteArrayInputStream("doc3".getBytes()), uri3, DocumentFormat.TXT);
+
+        // One of uri1 or uri2 must now be on disk
+        int inMemoryCount = 0;
+        for (URI uri : List.of(uri1, uri2, uri3)) {
+            File file = new File(uri.getHost() + ".json");
+            if (!file.exists()) {
+                inMemoryCount++;
+            }
+        }
+        assertEquals(2, inMemoryCount);
+    }
+
+    @Test
+    public void stage6PushToDiskViaMaxDocCountBringBackInViaDeleteAndSearch() throws Exception {
+        DocumentStore store = new DocumentStoreImpl(new File(System.getProperty("user.dir")));
+        store.setMaxDocumentCount(1);
+
+        URI uri1 = new URI("doc://1");
+        URI uri2 = new URI("doc://2");
+
+        store.put(new ByteArrayInputStream("apple banana".getBytes()), uri1, DocumentFormat.TXT);
+        store.setMetadata(uri1, "category", "fruit");
+
+        store.put(new ByteArrayInputStream("orange fruit".getBytes()), uri2, DocumentFormat.TXT);
+        store.setMetadata(uri2, "category", "fruit");
+
+        // At this point, uri1 is evicted
+        store.delete(uri2); // free space in memory
+
+        List<Document> results = store.searchByMetadata(Map.of("category", "fruit"));
+
+        assertTrue(results.stream().anyMatch(doc -> doc.getKey().equals(uri1)));
     }
 }

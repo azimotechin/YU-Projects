@@ -317,7 +317,12 @@ public class DocumentStoreImpl implements DocumentStore {
             Document doc = documents.get(ref.getUri());
             if (doc != null) {
                 doc.setLastUseTime(System.nanoTime());
-                this.docMinHeap.reHeapify(new DocumentReference(doc.getKey()));
+                try {
+                    this.docMinHeap.reHeapify(new DocumentReference(doc.getKey()));
+                } catch (NoSuchElementException e) {
+                    docMinHeap.insert(new DocumentReference(doc.getKey()));
+                }
+                areDocsInMemory.put(doc.getKey(), true);
                 docs.add(doc);
             }
         }
@@ -337,7 +342,12 @@ public class DocumentStoreImpl implements DocumentStore {
             Document doc = documents.get(ref.getUri());
             if (doc != null) {
                 doc.setLastUseTime(System.nanoTime());
-                this.docMinHeap.reHeapify(new DocumentReference(doc.getKey()));
+                try {
+                    this.docMinHeap.reHeapify(new DocumentReference(doc.getKey()));
+                } catch (NoSuchElementException e) {
+                    docMinHeap.insert(new DocumentReference(doc.getKey()));
+                }
+                areDocsInMemory.put(doc.getKey(), true);
                 docs.add(doc);
             }
         }
@@ -403,6 +413,12 @@ public class DocumentStoreImpl implements DocumentStore {
             }
             if (matches) {
                 docs.add(d);
+                d.setLastUseTime(System.nanoTime());
+                try {
+                    this.docMinHeap.reHeapify(new DocumentReference(d.getKey()));
+                } catch (NoSuchElementException e) {
+                    docMinHeap.insert(new DocumentReference(d.getKey()));
+                }
                 areDocsInMemory.put(uri, true);
             } else {
                 try {
