@@ -1,0 +1,23 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: statefulset-patch-role
+  namespace: trading-system
+rules:
+  - apiGroups: ["apps"]
+    resources: ["statefulsets", "statefulsets/scale"]
+    verbs: ["get", "list", "patch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: statefulset-patch-binding
+  namespace: trading-system
+subjects:
+  - kind: ServiceAccount
+    name: streamlit-service-account
+    namespace: trading-system
+roleRef:
+  kind: Role
+  name: statefulset-patch-role
+  apiGroup: rbac.authorization.k8s.io

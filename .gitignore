@@ -1,0 +1,3 @@
+TradeBooker/secrets.env
+TradeBooker/python/.streamlit/secrets.toml
+TradeBooker/python/ui/.streamlit/secrets.toml

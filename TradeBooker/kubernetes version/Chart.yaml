@@ -1,0 +1,4 @@
+apiVersion: v2
+name: trading-system
+description: A Helm chart for a Streamlit-based trading stack
+version: 0.1.0

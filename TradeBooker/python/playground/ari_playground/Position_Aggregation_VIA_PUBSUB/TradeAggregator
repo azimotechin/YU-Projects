@@ -1,0 +1,107 @@
+import redis
+from redis.sentinel import Sentinel  # Enables connection to Redis via Sentinel (HA setup)
+import logging
+
+# Set up logging to show info-level messages
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+class TradeAggregator:
+    def __init__(self, channel="trade_channel", position_hash="positions", sentinels=None, service_name="mymaster"):
+        """
+        Initializes the TradeAggregator.
+
+        Args:
+        - channel: the Redis pub/sub channel this class will subscribe to.
+        - position_hash: the Redis hash where we store account:ticker positions.
+        - sentinels: list of Sentinel nodes for high-availability Redis connection.
+        - service_name: name of the master group managed by Sentinel.
+        """
+        self.channel = channel
+        self.position_hash = position_hash
+
+        # Default list of Sentinel hosts (same as Docker setup)
+        if sentinels is None:
+            sentinels = [("sentinel1", 26379), ("sentinel2", 26379), ("sentinel3", 26379)]
+
+        try:
+            # Connect to the Sentinel system and get the Redis master connection
+            sentinel = Sentinel(sentinels, socket_timeout=0.5, decode_responses=True)
+            self.redis = sentinel.master_for(service_name, socket_timeout=0.5, decode_responses=True)
+
+            # Set up a pub/sub instance using the Redis connection
+            self.pubsub = self.redis.pubsub()
+
+            # Subscribe to the trade channel. Messages on this channel will trigger position updates.
+            self.pubsub.subscribe(self.channel)
+
+            logger.info(f"✅ Subscribed to Redis channel: {self.channel}")
+        except Exception as e:
+            logger.error(f"❌ Failed to connect to Redis Sentinel or subscribe to channel: {e}")
+            raise
+
+    def _update_position(self, account: str, ticker: str, trade_type: str, quantity: int):
+        """
+        Updates the position hash in Redis for the given account and ticker.
+
+        - Buy adds to the position.
+        - Sell subtracts from the position.
+
+        The Redis hash key is: account:ticker
+        The value is incremented/decremented using HINCRBY.
+        """
+        key = f"{account}:{ticker}"  # Combined key used in the positions hash
+        delta = quantity if trade_type.lower() == "buy" else -quantity  # +qty for buy, -qty for sell
+
+        # Atomically increment the position in Redis
+        self.redis.hincrby(self.position_hash, key, delta)
+
+        logger.info(f"🔁 Position updated for {key}: {'+' if delta > 0 else ''}{delta}")
+
+    def listen(self):
+        """
+        Main loop: continuously listens for new trade messages published to the Redis channel.
+        Expects messages in the format: account:ticker:buy/sell:quantity
+        Example: "alice:AAPL:buy:10"
+        """
+        logger.info("📡 Listening for trades... Press Ctrl+C to stop.")
+
+        # Continuously listen for messages published on the channel
+        for message in self.pubsub.listen():
+            # Redis sends subscription confirmations, so we only process actual messages
+            if message["type"] != "message":
+                continue
+
+            try:
+                # The message payload, sent as a string from the TradeManager
+                payload = message["data"]
+
+                # Parse expected format: account:ticker:buy/sell:quantity
+                account, ticker, trade_type, qty = payload.split(":")
+
+                # Convert quantity to int and update the position
+                self._update_position(account, ticker, trade_type, int(qty))
+            except Exception as e:
+                logger.warning(f"⚠️ Skipping invalid message '{message}': {e}")
+    
+    def print_all_positions(self):
+        """
+        Fetches and prints all current positions from the Redis hash.
+        Each entry is of the form: account:ticker => quantity
+        """
+        logger.info("📊 Current portfolio positions:")
+        try:
+            positions = self.redis.hgetall(self.position_hash)
+            if not positions:
+                print("ℹ️  No positions currently stored.")
+            else:
+                for key, value in positions.items():
+                    print(f"{key}: {value}")
+        except Exception as e:
+            logger.error(f"❌ Failed to fetch positions from Redis: {e}")
+
+
+    # Run this file directly to start the aggregator
+    if __name__ == "__main__":
+        aggregator = TradeAggregator()
+        aggregator.listen()

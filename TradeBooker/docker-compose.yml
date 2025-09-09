@@ -1,0 +1,250 @@
+services:
+  redis-master:
+    image: redis:8.0.2
+    container_name: redis-master
+    hostname: redis-master
+    ports:
+      - "6379:6379"
+    volumes:
+      - ./data/master:/data #Mounts the local ./data/master folder to Redis's /data directory (where it saves DB files).
+    command:
+      [
+        "redis-server",
+        "--appendonly", "yes",
+        "--repl-diskless-load", "on-empty-db", #I think this needs to be changed to allow for persistence across being shut down and rebooted, rather than only rebooting with a fresh start
+        "--replica-announce-ip", "172.21.0.3",
+        "--replica-announce-port", "6379",
+        "--protected-mode", "no",
+        "--notify-keyspace-events", "KEA"
+      ]
+    networks:
+      redis-net:
+        ipv4_address: 172.21.0.3
+
+  redis-replica:
+    image: redis:8.0.2
+    container_name: redis-replica
+    hostname: redis-replica
+    ports:
+      - "6380:6379"
+    volumes:
+      - /tmp/redis-replica:/data  # NOT PERSISTENT. Only good for testing. Needs to be changed eventually.
+    command:
+      [
+        "redis-server",
+        "--appendonly", "yes",
+        "--replicaof", "redis-master", "6379",
+        "--protected-mode", "no"
+      ]
+    networks:
+      redis-net:
+        ipv4_address: 172.21.0.4
+
+  sentinel1:
+    image: redis:8.0.2
+    container_name: sentinel1
+    hostname: sentinel1
+    depends_on:
+      - redis-master
+    ports:
+      - "26379:26379"
+    command: >
+      sh -c 'echo "bind 0.0.0.0" > /etc/sentinel.conf &&
+             echo "sentinel monitor mymaster 172.21.0.3 6379 2" >> /etc/sentinel.conf &&
+             echo "sentinel resolve-hostnames yes" >> /etc/sentinel.conf &&
+             echo "sentinel down-after-milliseconds mymaster 10000" >> /etc/sentinel.conf &&
+             echo "sentinel failover-timeout mymaster 10000" >> /etc/sentinel.conf &&
+             echo "sentinel parallel-syncs mymaster 1" >> /etc/sentinel.conf &&
+             redis-sentinel /etc/sentinel.conf'
+    networks:
+      redis-net:
+        ipv4_address: 172.21.0.5
+
+  sentinel2:
+    image: redis:8.0.2
+    container_name: sentinel2
+    hostname: sentinel2
+    depends_on:
+      - redis-master
+    ports:
+      - "26380:26379"
+    command: >
+      sh -c 'echo "bind 0.0.0.0" > /etc/sentinel.conf &&
+             echo "sentinel monitor mymaster 172.21.0.3 6379 2" >> /etc/sentinel.conf &&
+             echo "sentinel resolve-hostnames yes" >> /etc/sentinel.conf &&
+             echo "sentinel down-after-milliseconds mymaster 10000" >> /etc/sentinel.conf &&
+             echo "sentinel failover-timeout mymaster 10000" >> /etc/sentinel.conf &&
+             echo "sentinel parallel-syncs mymaster 1" >> /etc/sentinel.conf &&
+             redis-sentinel /etc/sentinel.conf'
+    networks:
+      redis-net:
+        ipv4_address: 172.21.0.6
+
+  sentinel3:
+    image: redis:8.0.2
+    container_name: sentinel3
+    hostname: sentinel3
+    depends_on:
+      - redis-master
+    ports:
+      - "26381:26379"
+    command: >
+      sh -c 'echo "bind 0.0.0.0" > /etc/sentinel.conf &&
+             echo "sentinel monitor mymaster 172.21.0.3 6379 2" >> /etc/sentinel.conf &&
+             echo "sentinel resolve-hostnames yes" >> /etc/sentinel.conf &&
+             echo "sentinel down-after-milliseconds mymaster 10000" >> /etc/sentinel.conf &&
+             echo "sentinel failover-timeout mymaster 10000" >> /etc/sentinel.conf &&
+             echo "sentinel parallel-syncs mymaster 1" >> /etc/sentinel.conf &&
+             redis-sentinel /etc/sentinel.conf'
+    networks:
+      redis-net:
+        ipv4_address: 172.21.0.7
+
+  python-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: python-app
+    depends_on:
+      - redis-master
+    command: ["sh"]
+    stdin_open: true
+    tty: true
+    volumes:
+      - ./python:/app
+    working_dir: /app
+    networks:
+      redis-net:
+        ipv4_address: 172.21.0.8
+
+  streamlit-ui:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: streamlit-ui
+    command: streamlit run app.py --server.port=8501 --server.address=0.0.0.0
+    ports:
+      - "8501:8501"
+    volumes:
+      - ./python:/app
+    working_dir: /app/ui
+    depends_on:
+      - redis-master
+    networks:
+      redis-net:
+        ipv4_address: 172.21.0.9
+    environment:
+      REDIRECT_URI: ${REDIRECT_URI}
+      COOKIE_SECRET: ${COOKIE_SECRET}
+      CLIENT_ID: ${CLIENT_ID}
+      CLIENT_SECRET: ${CLIENT_SECRET}
+      SERVER_METADATA_URL: ${SERVER_METADATA_URL}
+
+  trade-booker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: trade-booker
+    command: sh -c "python3 scripts/wait_for_redis.py && python3 scripts/trade_booker.py 35"
+    volumes:
+      - ./python:/app
+    working_dir: /app
+    restart: on-failure
+    depends_on:
+      - redis-master
+      - streamlit-ui # Depends on UI to ensure the stream exists
+    networks:
+      redis-net:
+        ipv4_address: 172.21.0.13
+
+
+  position-aggregator:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: position-aggregator
+    #command: python3 scripts/portfolio_aggregator.py #old position aggregator
+    command: >
+      bash -c "
+        mkdir -p logs/aggregator_logs &&
+        python3 scripts/position_aggregator.py ABCDE    > logs/aggregator_logs/ABCDE.log    2>&1 &
+        python3 scripts/position_aggregator.py FGHIJ    > logs/aggregator_logs/FGHIJ.log    2>&1 &
+        python3 scripts/position_aggregator.py KLMNO    > logs/aggregator_logs/KLMNO.log    2>&1 &
+        python3 scripts/position_aggregator.py PQRST    > logs/aggregator_logs/PQRST.log    2>&1 &
+        python3 scripts/position_aggregator.py UVWXYZ   > logs/aggregator_logs/UVWXYZ.log   2>&1 &
+        wait
+      "
+
+    volumes:
+      - ./python:/app
+    working_dir: /app
+    restart: on-failure
+    depends_on:
+      - redis-master
+      - streamlit-ui # Depends on UI to ensure the stream exists
+    networks:
+      redis-net:
+        ipv4_address: 172.21.0.11
+    
+
+  market-data-feed:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: market-data-feed
+    command: sh -c "python3 scripts/wait_for_redis.py && python3 scripts/add_tickers_to_redis.py"
+    volumes:
+      - ./python:/app
+    working_dir: /app
+    depends_on:
+      - redis-master
+    networks:
+      redis-net:
+        ipv4_address: 172.21.0.12
+
+  pnl-calculator:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: pnl-calculator
+    command: sh -c "python3 scripts/wait_for_redis.py && python3 scripts/start_pnl_calculators.py"
+    volumes:
+      - ./python:/app
+    working_dir: /app
+    restart: on-failure
+    depends_on:
+      - redis-master
+    networks:
+      redis-net:
+        ipv4_address: 172.21.0.14
+
+  pnl-updater:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: pnl-updater
+    command: python3 scripts/unrealized_pnl_updater.py
+    volumes:
+      - ./python:/app
+    working_dir: /app
+    depends_on:
+      - redis-master
+    networks:
+      redis-net:
+        ipv4_address: 172.21.0.15
+
+  #redisinsight:
+  #  image: redis/redisinsight:latest
+  #  container_name: redisinsight
+  #  ports:
+  #    - "5540:5540"
+  #  networks:
+  #    redis-net:
+  #      ipv4_address: 172.21.0.10
+
+networks:
+  redis-net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.21.0.0/16

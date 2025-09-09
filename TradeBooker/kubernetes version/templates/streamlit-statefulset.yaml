@@ -1,0 +1,65 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: streamlit
+  labels:
+    app: streamlit
+spec:
+  serviceName: streamlit-headless
+  replicas: {{ .Values.app.streamlit.replicaCount }}
+  selector:
+    matchLabels:
+      app: streamlit
+  template:
+    metadata:
+      labels:
+        app: streamlit
+    spec:
+      serviceAccountName: streamlit-service-account
+      containers:
+      - name: streamlit
+        image: {{ .Values.app.image }}
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8501
+          name: streamlit
+        command: ["streamlit", "run", "streamlit_app.py"]
+        args: 
+        - --server.port=8501
+        - --server.address=0.0.0.0
+        - --server.headless=true
+        - --server.fileWatcherType=none
+        env:
+        - name: SERVICE_TYPE
+          value: "streamlit-app"
+        - name: POD_GUID
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.uid
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: REDIS_HOST
+          value: "redis-primary"  # Connect to primary Redis
+        - name: DOCKER_IMAGE
+          value: "{{ .Values.app.image }}"
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 8501
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 8501
+          initialDelaySeconds: 10
+          periodSeconds: 5
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "200m"
+          limits:
+            memory: "1Gi"
+            cpu: "500m"

@@ -1,0 +1,38 @@
+app:
+  image: shacharyk/trading-system:v3.2.9
+  streamlit:
+    replicaCount: 2
+    port: 8501
+  tradeManager:
+    replicaCount: 2
+  marketData:
+    replicaCount: 2
+
+redis:
+  host: redis-primary
+  masterReplicas: 2
+  port: 6379
+  
+statefulSets:
+  enabled: true
+  persistence:
+    enabled: true
+    storageClass: do-block-storage
+    size: 5Gi
+
+ingress:
+  enabled: false
+  
+service:
+  type: LoadBalancer
+  port: 80
+  targetPort: 8501
+  staticIP: "129.212.196.213"
+
+resources:
+  requests:
+    memory: "512Mi"
+    cpu: "250m"
+  limits:
+    memory: "1Gi"
+    cpu: "500m"
