@@ -1,0 +1,51 @@
+/opt/anaconda3/envs/summer-2025/bin/python /Users/azmo/isd/summer-2025/python/scripts/add_tickers_to_redis.py
+Successfully fetched 4944 tickers from NASDAQ.
+
+============================================================
+Redis Stock Price Updater
+Tracking 4944 NASDAQ tickers
+Market Hours: 9:30 AM - 4:00 PM ET
+Update Interval: 15.0 minutes
+============================================================
+
+Market closed. Opens in 0d 0h 0m 5s
+✓ Market is now open!
+
+[09:30 AM ET] Updating 4944 tickers in 10 batches...
+
+32 Failed downloads:
+['ASPC', 'ALCYU', 'AACBR', 'AFJKR', 'ATMV', 'AIRJW', 'AFJK', 'AIFER', 'ACONW', 'ATMC', 'ASPCU', 'ANNAW', 'ANSCU', 'ADVWW', 'BACQU', 'ABLVW', 'ATMCU', 'ALFUU', 'ATMVU', 'AACBU', 'BAYAU', 'ANSCW', 'ANGHW', 'BANFP', 'ALDFW', 'BCGWW', 'ASPCR', 'BCTXZ', 'AFJKU', 'AIMDW', 'BBLGW', 'ALCY']: YFPricesMissingError('possibly delisted; no price data found  (period=1d)')
+Batch 1/10: Updated 297/500 tickers
+25 Failed downloads:
+['CHARU', 'CELUW', 'CAPNU', 'CHPG', 'BFRIW', 'BIAFW', 'CLNNW', 'BLDEW', 'CNFR', 'BETRW', 'CNFRZ', 'BKHA', 'BKHAU', 'CAPTW', 'BEATW', 'BOWNU', 'CAPN', 'CCIRU', 'CAPNR', 'CHARR', 'CDTTW', 'CCIXW', 'CCIXU', 'BRLSW', 'BOWNR']: YFPricesMissingError('possibly delisted; no price data found  (period=1d)')
+Batch 2/10: Updated 280/500 tickers
+31 Failed downloads:
+['EUDAW', 'DTSQU', 'CPBI', 'DYCQ', 'DMAAR', 'DRDBW', 'EMCG', 'DISTR', 'DYCQU', 'CUBWU', 'DTSQ', 'EXEEL', 'COLAU', 'COOTW', 'DISTW', 'EURKR', 'EXEEZ', 'DRDBU', 'EMCGW', 'ESLAW', 'DRMAW', 'EMCGU', 'CYCCP', 'COCHW', 'COLA', 'DIST', 'ESHA', 'ESHAR', 'EMCGR', 'CURIW', 'EXEEW']: YFPricesMissingError('possibly delisted; no price data found  (period=1d)')
+Batch 3/10: Updated 296/500 tickers
+19 Failed downloads:
+['FORTY', 'GECCO', 'HFBL', 'FACTW', 'GEGGL', 'FGIWW', 'GRIN', 'GECCI', 'FACTU', 'FOXXW', 'HDL', 'GSHRU', 'FSHPU', 'GPATU', 'GIPRW', 'GSHR', 'FGBIP', 'GYRO', 'FATBW']: YFPricesMissingError('possibly delisted; no price data found  (period=1d)')
+Batch 4/10: Updated 249/500 tickers
+23 Failed downloads:
+['KVACU', 'IROHR', 'JSPRW', 'HSPOU', 'HSPT', 'KPLTW', 'JFBRW', 'IROQ', 'IROHW', 'KFIIU', 'ISRLU', 'KFIIR', 'HSPTU', 'HVII', 'HSCSW', 'IBAC', 'HNNAZ', 'HSPO', 'HSPOR', 'HVIIU', 'KFFB', 'KELYB', 'HSPTR']: YFPricesMissingError('possibly delisted; no price data found  (period=1d)')
+Batch 5/10: Updated 328/500 tickers
+22 Failed downloads:
+['MAYAU', 'LPBBW', 'LCCCR', 'MRNOW', 'LPAAU', 'MAYS', 'LBTYB', 'NESRW', 'MLACU', 'MLACR', 'NETDW', 'MAYA', 'LPBBU', 'MACIU', 'LEXXW', 'LOKVU', 'LIXTW', 'LOKVW', 'MBAVU', 'LCFYW', 'METCL']: YFPricesMissingError('possibly delisted; no price data found  (period=1d)')
+['MFIC']: Timeout('Failed to perform, curl: (28) Connection timed out after 10002 milliseconds. See https://curl.se/libcurl/c/libcurl-errors.html first for more details.')
+Batch 6/10: Updated 313/500 tickers
+24 Failed downloads:
+['PCTTU', 'OCSAW', 'PMTR', 'OAKUW', 'OABIW', 'OPTXW', 'POLEU', 'NIXXW', 'PBBK', 'ODVWZ', 'NOEMU', 'NWTNW', 'OPT', 'NTWOU', 'OAKU', 'OSRHW', 'OAKUR', 'NSTS', 'NOEMW', 'NHICU', 'NTWOW', 'OACCU', 'OAKUU', 'OACCW']: YFPricesMissingError('possibly delisted; no price data found  (period=1d)')
+Batch 7/10: Updated 313/500 tickers
+21 Failed downloads:
+['RDAC', 'SDHIR', 'RIBBR', 'QETA', 'RFAI', 'RANG', 'SENEB', 'PXSAW', 'QETAU', 'RDACU', 'SIMAU', 'SEATW', 'RSVRW', 'RIBB', 'QSEAU', 'RFAIU', 'RIBBU', 'QSEA', 'QSEAR', 'RMCOW', 'RDACR']: YFPricesMissingError('possibly delisted; no price data found  (period=1d)')
+Batch 8/10: Updated 304/500 tickers
+18 Failed downloads:
+['SOHOB', 'SVCCU', 'TAVIU', 'SZZLU', 'SOHOO', 'SVA', 'TDACU', 'TDAC', 'TDACW', 'TAVIR', 'SXTPW', 'TACH', 'SMXWW', 'SVIIU', 'SLMBP', 'SPKLU', 'SSSSL', 'SZZLR']: YFPricesMissingError('possibly delisted; no price data found  (period=1d)')
+Batch 9/10: Updated 335/500 tickersHTTP Error 404:
+HTTP Error 404:
+
+22 Failed downloads:
+['ZWZZT', 'VAPEW', 'VCICU', 'VGASW', 'YHNAU', 'WVVIP', 'VSSYW', 'VEEAW', 'VACHU', 'UYSCU', 'UKOMW', 'ZOOZW', 'ZJZZT', 'YHNAR', 'WLAC', 'UYSC', 'YHNA', 'VCIC', 'WHLRL', 'WLDSW']: YFPricesMissingError('possibly delisted; no price data found  (period=1d)')
+['ZBZZT', 'ZCZZT']: YFPricesMissingError('possibly delisted; no price data found  (period=1d) (Yahoo error = "No data found, symbol may be delisted")')
+Batch 10/10: Updated 268/444 tickers
+Update completed in 132.36 seconds
+Next update in 12.8 minutes...

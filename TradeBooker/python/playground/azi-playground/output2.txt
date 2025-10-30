@@ -1,0 +1,35 @@
+[09:45 AM ET] Updating 4944 tickers in 10 batches...
+
+31 Failed downloads:
+['ASPC', 'ALCYU', 'AACBR', 'AFJKR', 'ATMV', 'AIRJW', 'AFJK', 'AIFER', 'ACONW', 'ATMC', 'ANNAW', 'ANSCU', 'ASPCU', 'ADVWW', 'BACQU', 'ABLVW', 'ATMCU', 'ALFUU', 'ATMVU', 'AACBU', 'BAYAU', 'ANSCW', 'ANGHW', 'BANFP', 'BCGWW', 'ASPCR', 'BCTXZ', 'AIMDW', 'AFJKU', 'BBLGW', 'ALCY']: YFPricesMissingError('possibly delisted; no price data found  (period=1d)')
+Batch 1/10: Updated 371/500 tickers
+24 Failed downloads:
+['CHARU', 'CELUW', 'CAPNU', 'CHPG', 'BFRIW', 'CLNNW', 'BLDEW', 'CNFR', 'BETRW', 'CNFRZ', 'BKHA', 'BKHAU', 'CAPTW', 'BEATW', 'BOWNU', 'CAPN', 'CCIRU', 'CAPNR', 'CHARR', 'CDTTW', 'CCIXW', 'CCIXU', 'BRLSW', 'BOWNR']: YFPricesMissingError('possibly delisted; no price data found  (period=1d)')
+Batch 2/10: Updated 381/500 tickers
+28 Failed downloads:
+['DTSQU', 'CPBI', 'DYCQ', 'DMAAR', 'DRDBW', 'EMCG', 'DISTR', 'DYCQU', 'CUBWU', 'DTSQ', 'EXEEL', 'COLAU', 'COOTW', 'DISTW', 'EURKR', 'EXEEZ', 'DRDBU', 'EMCGW', 'ESLAW', 'DRMAW', 'EMCGU', 'CYCCP', 'COLA', 'ESHA', 'DIST', 'ESHAR', 'EMCGR', 'EXEEW']: YFPricesMissingError('possibly delisted; no price data found  (period=1d)')
+Batch 3/10: Updated 377/500 tickers
+19 Failed downloads:
+['FORTY', 'GECCO', 'HFBL', 'FACTW', 'GEGGL', 'FGIWW', 'GRIN', 'GECCI', 'FOXXW', 'FACTU', 'GSHRU', 'HDL', 'FSHPU', 'GPATU', 'GIPRW', 'GSHR', 'FGBIP', 'GYRO', 'FATBW']: YFPricesMissingError('possibly delisted; no price data found  (period=1d)')
+Batch 4/10: Updated 350/500 tickers
+22 Failed downloads:
+['KVACU', 'IROHR', 'JSPRW', 'HSPOU', 'KPLTW', 'JFBRW', 'IROQ', 'IROHW', 'KFIIU', 'ISRLU', 'KFIIR', 'HSPTU', 'HVII', 'HSCSW', 'IBAC', 'HNNAZ', 'HSPO', 'HSPOR', 'HVIIU', 'KFFB', 'KELYB', 'HSPTR']: YFPricesMissingError('possibly delisted; no price data found  (period=1d)')
+Batch 5/10: Updated 392/500 tickers
+21 Failed downloads:
+['MAYAU', 'LPBBW', 'LCCCR', 'MRNOW', 'MAYS', 'LBTYB', 'NESRW', 'LPAAU', 'MLACU', 'MLACR', 'NETDW', 'MAYA', 'LPBBU', 'MACIU', 'LEXXW', 'LOKVU', 'LIXTW', 'LOKVW', 'LCFYW', 'MBAVU', 'METCL']: YFPricesMissingError('possibly delisted; no price data found  (period=1d)')
+Batch 6/10: Updated 367/500 tickers
+22 Failed downloads:
+['PCTTU', 'OCSAW', 'PMTR', 'OAKUW', 'OABIW', 'OPTXW', 'POLEU', 'NIXXW', 'ODVWZ', 'NOEMU', 'OPT', 'NTWOU', 'OSRHW', 'OAKUR', 'OAKU', 'NSTS', 'NOEMW', 'NHICU', 'NTWOW', 'OACCU', 'OAKUU', 'OACCW']: YFPricesMissingError('possibly delisted; no price data found  (period=1d)')
+Batch 7/10: Updated 374/500 tickers
+21 Failed downloads:
+['RDAC', 'SDHIR', 'RIBBR', 'QETA', 'RFAI', 'SENEB', 'RANG', 'PXSAW', 'QETAU', 'RDACU', 'SIMAU', 'SEATW', 'RSVRW', 'RIBB', 'QSEAU', 'RFAIU', 'RIBBU', 'QSEA', 'QSEAR', 'RMCOW', 'RDACR']: YFPricesMissingError('possibly delisted; no price data found  (period=1d)')
+Batch 8/10: Updated 376/500 tickers
+18 Failed downloads:
+['SOHOO', 'SOHOB', 'SVCCU', 'TAVIU', 'SZZLU', 'SVA', 'TDACU', 'TDAC', 'TDACW', 'TAVIR', 'SXTPW', 'TACH', 'SMXWW', 'SVIIU', 'SLMBP', 'SPKLU', 'SSSSL', 'SZZLR']: YFPricesMissingError('possibly delisted; no price data found  (period=1d)')
+Batch 9/10: Updated 391/500 tickers
+18 Failed downloads:
+['ZWZZT', 'VCICU', 'VGASW', 'YHNAU', 'VSSYW', 'VEEAW', 'VACHU', 'ZOOZW', 'UKOMW', 'ZJZZT', 'YHNAR', 'WLAC', 'UYSC', 'YHNA', 'WHLRL', 'WLDSW']: YFPricesMissingError('possibly delisted; no price data found  (period=1d)')
+['ZBZZT', 'ZCZZT']: YFPricesMissingError('possibly delisted; no price data found  (period=1d) (Yahoo error = "No data found, symbol may be delisted")')
+Batch 10/10: Updated 335/444 tickers
+Update completed in 129.18 seconds
+Next update in 12.8 minutes...
